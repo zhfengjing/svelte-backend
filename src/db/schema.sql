@@ -63,3 +63,15 @@ CREATE TABLE IF NOT EXISTS user_stats (
   number VARCHAR(20),
   label VARCHAR(100)
 );
+
+-- 关注表
+CREATE TABLE IF NOT EXISTS follows (
+  id SERIAL PRIMARY KEY,
+  follower_id VARCHAR(255) NOT NULL,
+  author_id VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(follower_id, author_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_follows_author_id ON follows(author_id);
+CREATE INDEX IF NOT EXISTS idx_follows_follower_id ON follows(follower_id);

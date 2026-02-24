@@ -8,6 +8,7 @@ import commentsRouter from './routes/comments.js';
 import categoriesRouter from './routes/categories.js';
 import tagsRouter from './routes/tags.js';
 import userRouter from './routes/user.js';
+import authorsRouter from './routes/authors.js';
 
 const app = express();
 
@@ -31,6 +32,7 @@ app.use('/api/articles/:articleId/comments', commentsRouter);
 app.use('/api/categories', categoriesRouter);
 app.use('/api/tags', tagsRouter);
 app.use('/api/user', userRouter);
+app.use('/api/authors', authorsRouter);
 
 // 健康检查
 app.get('/health', (_req, res) => {
