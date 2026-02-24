@@ -1,0 +1,22 @@
+export const tags = [
+  'JavaScript',
+  'TypeScript',
+  'Svelte',
+  'React',
+  'Vue',
+  'Node.js',
+  'Python',
+  'Web3',
+  '区块链',
+  'Solidity',
+  '以太坊',
+  'DeFi',
+  'CSS',
+  '前端',
+  '后端',
+  '性能优化',
+  '机器学习',
+  '数据科学',
+  '智能合约',
+  '布局'
+];
