@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import pool from '../db/index.js';
+import { requireAuth, optionalAuth } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -218,6 +219,168 @@ router.delete('/:id', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ code: 500, message: '服务器内部错误' });
+  }
+});
+
+// ─── 点赞 ────────────────────────────────────────────────────────────────────
+
+// GET /api/articles/:id/like - 查询点赞状态和总数
+router.get('/:id/like', optionalAuth, async (req, res, next) => {
+  const articleId = parseInt(req.params.id);
+  try {
+    const countResult = await pool.query(
+      'SELECT COUNT(*) AS count FROM article_likes WHERE article_id = $1',
+      [articleId]
+    );
+    const likeCount = parseInt(countResult.rows[0].count, 10);
+
+    let isLiked = false;
+    if (req.followerId) {
+      const check = await pool.query(
+        'SELECT 1 FROM article_likes WHERE user_id = $1 AND article_id = $2',
+        [req.followerId, articleId]
+      );
+      isLiked = check.rowCount > 0;
+    }
+
+    res.json({ success: true, isLiked, likeCount });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /api/articles/:id/like - 点赞
+router.post('/:id/like', requireAuth, async (req, res, next) => {
+  const articleId = parseInt(req.params.id);
+  const userId = req.followerId;
+  try {
+    await pool.query(
+      `INSERT INTO article_likes (user_id, article_id)
+       VALUES ($1, $2)
+       ON CONFLICT (user_id, article_id) DO NOTHING`,
+      [userId, articleId]
+    );
+
+    const { rows } = await pool.query(
+      'SELECT COUNT(*) AS count FROM article_likes WHERE article_id = $1',
+      [articleId]
+    );
+
+    res.json({
+      success: true,
+      message: '点赞成功',
+      isLiked: true,
+      likeCount: parseInt(rows[0].count, 10),
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// DELETE /api/articles/:id/like - 取消点赞
+router.delete('/:id/like', requireAuth, async (req, res, next) => {
+  const articleId = parseInt(req.params.id);
+  const userId = req.followerId;
+  try {
+    await pool.query(
+      'DELETE FROM article_likes WHERE user_id = $1 AND article_id = $2',
+      [userId, articleId]
+    );
+
+    const { rows } = await pool.query(
+      'SELECT COUNT(*) AS count FROM article_likes WHERE article_id = $1',
+      [articleId]
+    );
+
+    res.json({
+      success: true,
+      message: '取消点赞成功',
+      isLiked: false,
+      likeCount: parseInt(rows[0].count, 10),
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ─── 收藏 ────────────────────────────────────────────────────────────────────
+
+// GET /api/articles/:id/bookmark - 查询收藏状态和总数
+router.get('/:id/bookmark', optionalAuth, async (req, res, next) => {
+  const articleId = parseInt(req.params.id);
+  try {
+    const countResult = await pool.query(
+      'SELECT COUNT(*) AS count FROM article_bookmarks WHERE article_id = $1',
+      [articleId]
+    );
+    const bookmarkCount = parseInt(countResult.rows[0].count, 10);
+
+    let isBookmarked = false;
+    if (req.followerId) {
+      const check = await pool.query(
+        'SELECT 1 FROM article_bookmarks WHERE user_id = $1 AND article_id = $2',
+        [req.followerId, articleId]
+      );
+      isBookmarked = check.rowCount > 0;
+    }
+
+    res.json({ success: true, isBookmarked, bookmarkCount });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /api/articles/:id/bookmark - 收藏
+router.post('/:id/bookmark', requireAuth, async (req, res, next) => {
+  const articleId = parseInt(req.params.id);
+  const userId = req.followerId;
+  try {
+    await pool.query(
+      `INSERT INTO article_bookmarks (user_id, article_id)
+       VALUES ($1, $2)
+       ON CONFLICT (user_id, article_id) DO NOTHING`,
+      [userId, articleId]
+    );
+
+    const { rows } = await pool.query(
+      'SELECT COUNT(*) AS count FROM article_bookmarks WHERE article_id = $1',
+      [articleId]
+    );
+
+    res.json({
+      success: true,
+      message: '收藏成功',
+      isBookmarked: true,
+      bookmarkCount: parseInt(rows[0].count, 10),
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// DELETE /api/articles/:id/bookmark - 取消收藏
+router.delete('/:id/bookmark', requireAuth, async (req, res, next) => {
+  const articleId = parseInt(req.params.id);
+  const userId = req.followerId;
+  try {
+    await pool.query(
+      'DELETE FROM article_bookmarks WHERE user_id = $1 AND article_id = $2',
+      [userId, articleId]
+    );
+
+    const { rows } = await pool.query(
+      'SELECT COUNT(*) AS count FROM article_bookmarks WHERE article_id = $1',
+      [articleId]
+    );
+
+    res.json({
+      success: true,
+      message: '取消收藏成功',
+      isBookmarked: false,
+      bookmarkCount: parseInt(rows[0].count, 10),
+    });
+  } catch (err) {
+    next(err);
   }
 });
 

@@ -64,6 +64,30 @@ CREATE TABLE IF NOT EXISTS user_stats (
   label VARCHAR(100)
 );
 
+-- 文章点赞表
+CREATE TABLE IF NOT EXISTS article_likes (
+  id SERIAL PRIMARY KEY,
+  user_id VARCHAR(255) NOT NULL,
+  article_id INTEGER NOT NULL REFERENCES articles(id) ON DELETE CASCADE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(user_id, article_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_article_likes_article_id ON article_likes(article_id);
+CREATE INDEX IF NOT EXISTS idx_article_likes_user_id ON article_likes(user_id);
+
+-- 文章收藏表
+CREATE TABLE IF NOT EXISTS article_bookmarks (
+  id SERIAL PRIMARY KEY,
+  user_id VARCHAR(255) NOT NULL,
+  article_id INTEGER NOT NULL REFERENCES articles(id) ON DELETE CASCADE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(user_id, article_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_article_bookmarks_article_id ON article_bookmarks(article_id);
+CREATE INDEX IF NOT EXISTS idx_article_bookmarks_user_id ON article_bookmarks(user_id);
+
 -- 关注表
 CREATE TABLE IF NOT EXISTS follows (
   id SERIAL PRIMARY KEY,
